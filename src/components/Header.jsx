@@ -1,7 +1,12 @@
-import React from 'react';
-import { Search, Bell, FolderOpen } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, FolderOpen } from 'lucide-react';
 
 const Header = ({ activeTab, onTabChange }) => {
+    // If props are passed, use them (lifted state), otherwise default to internal state (backward compatibility)
+    const [internalTab, setInternalTab] = useState('all');
+    const currentTab = activeTab || internalTab;
+    const handleTabChange = onTabChange || setInternalTab;
+
     return (
         <header className="sticky-header cabinet-texture">
             <div className="header-content">
@@ -26,12 +31,13 @@ const Header = ({ activeTab, onTabChange }) => {
                 {/* Central Tabs (Desktop) */}
                 <div className="hidden md:flex items-end flex-1 justify-center h-full pt-6">
                     <div className="tabs-container">
+                        {/* Static Bottom Line */}
                         <div className="tabs-bottom-line"></div>
 
                         {/* Tab: All */}
                         <div
-                            className={`folder-tab ${activeTab === 'all' ? 'active tab-all-active' : ''}`}
-                            onClick={() => onTabChange('all')}
+                            className={`folder-tab ${currentTab === 'all' ? 'active tab-all-active' : ''}`}
+                            onClick={() => handleTabChange('all')}
                         >
                             <FolderOpen size={18} />
                             <span>All</span>
@@ -39,16 +45,16 @@ const Header = ({ activeTab, onTabChange }) => {
 
                         {/* Tab: Africa */}
                         <div
-                            className={`folder-tab ${activeTab === 'africa' ? 'active tab-africa-active' : ''}`}
-                            onClick={() => onTabChange('africa')}
+                            className={`folder-tab ${currentTab === 'africa' ? 'active tab-africa-active' : ''}`}
+                            onClick={() => handleTabChange('africa')}
                         >
                             <span>Africa</span>
                         </div>
 
                         {/* Tab: Global */}
                         <div
-                            className={`folder-tab ${activeTab === 'global' ? 'active tab-global-active' : ''}`}
-                            onClick={() => onTabChange('global')}
+                            className={`folder-tab ${currentTab === 'global' ? 'active tab-global-active' : ''}`}
+                            onClick={() => handleTabChange('global')}
                         >
                             <span>Global</span>
                         </div>
@@ -67,18 +73,9 @@ const Header = ({ activeTab, onTabChange }) => {
                             placeholder="Search archive..."
                         />
                     </div>
-
-                    <button className="btn-icon relative">
-                        <Bell size={20} />
-                        <span className="absolute top-2 right-2 h-2 w-2 bg-[var(--kini-orange)] rounded-full"></span>
-                    </button>
-
-                    <div
-                        className="avatar"
-                        style={{ backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuB-yUa0OSqyYo2Vm7NW0IuXK_cmAHdBWRgzDxKBemtqTO4qZqkrxKuBhVh8uCD3bEFLqUzA9Am9pLaDz8qUnETTbRyIMIueawPDeamm3OmjLf_XSFxIcV-GoU1IdNC25vpr05HDRZoMuBPB2_lVADCUmwEGgyzVk2QIBtdH6cQDFGSW4Laj5r6tRLkZuzWd9oSN6hQ66ZoelR7W4cus7u9XdkfS6VSx1s2ih0KCA0f4zTyuBjY0IDrNwUTiHP2kXX21IP3AyGFaBh9U')` }}
-                    ></div>
                 </div>
             </div>
+            {/* Header bottom border removed - reliance on tabs-bottom-line and overlap */}
         </header>
     );
 };

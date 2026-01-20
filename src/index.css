@@ -11,6 +11,7 @@
     --bg-dark: #0a100d;
     --text-dark: #e5e7eb;
     --border-color: #1E293B;
+    --header-line-color: #374151;
 
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
@@ -116,7 +117,7 @@ a {
     top: 0;
     z-index: 50;
     width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
     background-color: rgba(12, 18, 16, 0.95);
     backdrop-filter: blur(8px);
 }
@@ -133,7 +134,7 @@ a {
 }
 
 /* ===================== */
-/* TABS - FIXED          */
+/* TABS - FLUSHED        */
 /* ===================== */
 .tabs-container {
     display: flex;
@@ -143,17 +144,20 @@ a {
     gap: 0;
 }
 
+/* The Line - Static Grey */
 .tabs-bottom-line {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0px;
+    left: -100vw;
+    /* Extend left massively */
+    right: -100vw;
+    /* Extend right massively */
     height: 1px;
-    background-color: #374151;
+    background-color: var(--header-line-color);
     z-index: 10;
 }
 
-/* Base Tab Style - ALL TABS SAME SHAPE */
+/* Base Tab Style */
 .folder-tab {
     position: relative;
     height: 2.75rem;
@@ -175,22 +179,30 @@ a {
     font-family: var(--font-display);
     cursor: pointer;
     transition: all 0.2s ease-out;
-    /* Same angled shape for ALL tabs */
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0% 100%);
     z-index: 20;
 }
 
-.folder-tab:first-of-type {
+/* NOTE: nth-of-type counts ALL DIVS in .tabs-container */
+/* .tabs-bottom-line is #1 */
+/* All Tab (#2) */
+.folder-tab:nth-of-type(2) {
     margin-left: 0;
     z-index: 23;
 }
 
-.folder-tab:nth-of-type(2) {
+/* Africa Tab (#3) */
+.folder-tab:nth-of-type(3) {
     z-index: 22;
 }
 
-.folder-tab:nth-of-type(3) {
+/* Global Tab (#4 / Last) */
+.folder-tab:last-of-type {
     z-index: 21;
+    /* "Round up like the first card" */
+    clip-path: none;
+    border-top-right-radius: 0.5rem;
+    padding-right: 1.5rem;
 }
 
 /* Hover */
@@ -199,22 +211,33 @@ a {
     color: #d1d5db;
 }
 
-/* Base Active State */
+/* Base Active State - FLUSH FIX */
 .folder-tab.active {
     height: 3.25rem;
     margin-top: -0.5rem;
     font-weight: 700;
-    z-index: 40 !important;
-    box-shadow: var(--shadow-tab-active);
+    z-index: 50 !important;
+    /* Higher than border */
+    box-shadow: 0 -4px 12px -2px rgba(0, 0, 0, 0.2);
+
+    /* Ensure it COVERS the line */
+    background-color: var(--bg-dark);
+    /* Should match the tab color defined below */
+    padding-bottom: 1px;
+    /* Push content slightly? No, just cover */
+    margin-bottom: -1px;
+    /* Pull down to cover line */
+    border-bottom: none;
+    /* No border overlap */
 }
 
 /* === SPECIFIC ACTIVE COLORS === */
 
-/* All Tab Active - Neutral */
+/* All Tab Active - Neutral with Grey Line Cover */
 .folder-tab.tab-all-active {
     background-color: #25332e;
     color: var(--kini-sand-light);
-    border-color: #3c6e61;
+    border-color: var(--header-line-color);
 }
 
 /* Africa Tab Active - ORANGE */
@@ -577,46 +600,245 @@ a {
     align-items: center;
 }
 
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+/* Modal Container */
+.modal {
+  background-color: #1c242e;
+  border: 1px solid #2d3748;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #0f161d;
+  border: 1px solid #2d3748;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #133830;
+  box-shadow: 0 0 0 3px rgba(19, 56, 48, 0.2);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #6b7280;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #2d3748;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.25rem;
+  background-color: transparent;
+  border: 1px solid #2d3748;
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background-color: #283039;
+  color: white;
+}
+
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  background-color: #133830;
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #1a4a3f;
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Admin Buttons */
+.admin-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.admin-btn.primary {
+  background-color: #133830;
+  color: white;
+}
+
+.admin-btn.primary:hover {
+  background-color: #1a4a3f;
+}
+
+.admin-btn.secondary {
+  background-color: #283039;
+  color: #9ca3af;
+}
+
+.admin-btn.secondary:hover {
+  background-color: #374151;
+  color: white;
+}
+
+/* Back Link */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background-color: #283039;
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  transition: all 0.2s;
+}
+
+.back-link:hover {
+  background-color: #374151;
+  color: white;
+}
+
+.card-inactive {
+  opacity: 0.5;
+}
+
+/* Action Buttons (Fixed Layout) */
 .admin-card-actions {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .action-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1px solid transparent; /* default border */
 }
 
 .action-btn.approve {
-    background-color: transparent;
-    border: 1px solid #34d399;
-    color: #34d399;
+  background-color: transparent;
+  border-color: #34d399;
+  color: #34d399;
 }
 
 .action-btn.approve:hover {
-    background-color: rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.15);
 }
 
 .action-btn.reject {
-    background-color: transparent;
-    border: 1px solid #f87171;
-    color: #f87171;
+  background-color: transparent;
+  border-color: #f87171;
+  color: #f87171;
 }
 
 .action-btn.reject:hover {
-    background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.15);
 }
 
 .action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Code styling in modals */
+.modal code {
+  background-color: #283039;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
 }
 
 .status-badge.pending {
@@ -633,233 +855,4 @@ a {
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-}
-
-/* Manual tag */
-.admin-tag.manual {
-    background-color: rgba(139, 92, 246, 0.1);
-    color: #a78bfa;
-}
-
-/* Textarea styling */
-.form-group textarea {
-    width: 100%;
-    padding: 0.625rem 0.875rem;
-    background-color: #0f161d;
-    border: 1px solid #1E293B;
-    border-radius: 0.5rem;
-    color: white;
-    font-size: 0.875rem;
-    font-family: inherit;
-    line-height: 1.5;
-}
-
-.form-group textarea:focus {
-    outline: none;
-    border-color: #133830;
-}
-
-.form-group textarea::placeholder {
-    color: #6b7280;
-}
-
-/* Code styling in modals */
-.modal code {
-    background-color: #283039;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    font-size: 0.8rem;
-}
-
-.status-badge.rejected {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #f87171;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-}
-
-/* Modal Overlay */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-    backdrop-filter: blur(4px);
-}
-
-/* Modal Container */
-.modal {
-    background-color: #1c242e;
-    border: 1px solid #2d3748;
-    border-radius: 1rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-.modal h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    color: white;
-}
-
-/* Form Styles */
-.form-group {
-    margin-bottom: 1.25rem;
-}
-
-.form-group label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #9ca3af;
-    margin-bottom: 0.5rem;
-}
-
-.form-group input,
-.form-group select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: #0f161d;
-    border: 1px solid #2d3748;
-    border-radius: 0.5rem;
-    color: white;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    outline: none;
-    border-color: #133830;
-    box-shadow: 0 0 0 3px rgba(19, 56, 48, 0.2);
-}
-
-.form-group input::placeholder {
-    color: #6b7280;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #2d3748;
-}
-
-.btn-cancel {
-    padding: 0.75rem 1.25rem;
-    background-color: transparent;
-    border: 1px solid #2d3748;
-    border-radius: 0.5rem;
-    color: #9ca3af;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-cancel:hover {
-    background-color: #283039;
-    color: white;
-}
-
-.btn-submit {
-    padding: 0.75rem 1.5rem;
-    background-color: #133830;
-    border: none;
-    border-radius: 0.5rem;
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-submit:hover {
-    background-color: #1a4a3f;
-}
-
-.btn-submit:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Admin Buttons */
-.admin-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-}
-
-.admin-btn.primary {
-    background-color: #133830;
-    color: white;
-}
-
-.admin-btn.primary:hover {
-    background-color: #1a4a3f;
-}
-
-.admin-btn.secondary {
-    background-color: #283039;
-    color: #9ca3af;
-}
-
-.admin-btn.secondary:hover {
-    background-color: #374151;
-    color: white;
-}
-
-/* Sources Page */
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.back-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    background-color: #283039;
-    border-radius: 0.5rem;
-    color: #9ca3af;
-    transition: all 0.2s;
-}
-
-.back-link:hover {
-    background-color: #374151;
-    color: white;
-}
-
-.card-inactive {
-    opacity: 0.5;
 }

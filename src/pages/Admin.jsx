@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { Check, X, ExternalLink, RefreshCw, CheckCircle, Plus, Settings } from 'lucide-react';
+import { useAuth } from '../lib/AuthContext';
+import { Check, X, ExternalLink, RefreshCw, CheckCircle, Plus, Settings, LogOut, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Admin = () => {
+    const { user, signOut } = useAuth();
     const [stories, setStories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('pending');
@@ -63,9 +65,15 @@ const Admin = () => {
         );
 
         try {
+            const updates = { status };
+            // Track who approved/rejected
+            if (user?.email) {
+                updates.approved_by = user.email;
+            }
+
             const { error } = await supabase
                 .from('stories')
-                .update({ status })
+                .update(updates)
                 .eq('id', id);
 
             if (error) throw error;
@@ -99,7 +107,8 @@ const Admin = () => {
                 tag: newStory.tag,
                 source_type: 'manual',
                 status: 'approved',
-                published_at: new Date().toISOString()
+                published_at: new Date().toISOString(),
+                approved_by: user?.email // Track creator
             });
 
             if (error) throw error;
@@ -116,9 +125,22 @@ const Admin = () => {
     };
 
     const formatDate = (dateStr) => {
-        return new Date(dateStr).toLocaleString('en-US', {
+        const date = new Date(dateStr);
+        const today = new Date();
+        const isToday = date.toDateString() === today.toDateString();
+
+        if (isToday) {
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+        return date.toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
+            year: 'numeric',
             hour: 'numeric',
             minute: '2-digit'
         });
@@ -140,7 +162,15 @@ const Admin = () => {
     return (
         <div className="admin-container">
             <div className="admin-header">
-                <h1>Story Verification</h1>
+                <div>
+                    <h1>Story Verification</h1>
+                    {user && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                            <User size={14} />
+                            <span>{user.email}</span>
+                        </div>
+                    )}
+                </div>
                 <div className="admin-controls">
                     <button onClick={() => setShowAddModal(true)} className="admin-btn primary">
                         <Plus size={18} />
@@ -151,6 +181,10 @@ const Admin = () => {
                         <Settings size={18} />
                         Sources
                     </Link>
+
+                    <button onClick={signOut} className="admin-btn secondary" title="Sign Out">
+                        <LogOut size={18} />
+                    </button>
 
                     <select
                         value={regionFilter}
@@ -257,6 +291,11 @@ const Admin = () => {
                                 )}
                                 <span className="admin-card-source">{story.source}</span>
                                 <span className="admin-card-date">{formatDate(story.created_at)}</span>
+                                {story.approved_by && (
+                                     <span className="admin-card-user" style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9CA3AF' }}>
+                                        by {story.approved_by.split('@')[0]}
+                                     </span>
+                                )}
                             </div>
 
                             <a href={story.url} target="_blank" rel="noopener noreferrer" className="admin-card-title">

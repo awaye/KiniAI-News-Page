@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { Check, X, ExternalLink, RefreshCw, CheckCircle, Plus, Settings, LogOut, User } from 'lucide-react';
+import { Check, X, ExternalLink, RefreshCw, CheckCircle, Plus, Settings, LogOut, User, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Admin = () => {
@@ -12,6 +12,7 @@ const Admin = () => {
     const [regionFilter, setRegionFilter] = useState('all');
     const [updatingId, setUpdatingId] = useState(null);
     const [successId, setSuccessId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Add Story Modal
     const [showAddModal, setShowAddModal] = useState(false);
@@ -147,8 +148,30 @@ const Admin = () => {
         });
     };
 
+    const filteredStories = stories.filter(story => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+            story.title.toLowerCase().includes(query) ||
+            story.source.toLowerCase().includes(query) ||
+            (story.tag && story.tag.toLowerCase().includes(query))
+        );
+    });
+
+    const highlightText = (text, query) => {
+        if (!query || !text) return text;
+
+        const parts = text.toString().split(new RegExp(`(${query})`, 'gi'));
+        return parts.map((part, i) =>
+            part.toLowerCase() === query.toLowerCase()
+                ? <span key={i} className="highlight-text">{part}</span>
+                : part
+        );
+    };
+
     if (!isSupabaseConfigured()) {
         return (
+
             <div className="admin-container">
                 <div className="admin-header">
                     <h1>Admin Panel</h1>
@@ -168,6 +191,18 @@ const Admin = () => {
 
                 </div>
                 <div className="admin-controls">
+                    <div style={{ position: 'relative', width: '250px' }}>
+                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
+                        <input
+                            type="text"
+                            className="search-input-header"
+                            placeholder="Search pending..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{ paddingLeft: '2.5rem' }}
+                        />
+                    </div>
+
                     <button onClick={() => setShowAddModal(true)} className="admin-btn primary">
                         <Plus size={18} />
                         Add Story
@@ -240,134 +275,138 @@ const Admin = () => {
             </div>
 
             {/* Add Story Modal */}
-            {showAddModal && (
-                <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <h2>Add Story</h2>
-                        <form onSubmit={handleAddStory}>
-                            <div className="form-group">
-                                <label>Title *</label>
-                                <input
-                                    type="text"
-                                    value={newStory.title}
-                                    onChange={(e) => setNewStory({ ...newStory, title: e.target.value })}
-                                    placeholder="Story headline..."
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>URL *</label>
-                                <input
-                                    type="url"
-                                    value={newStory.url}
-                                    onChange={(e) => setNewStory({ ...newStory, url: e.target.value })}
-                                    placeholder="https://..."
-                                    required
-                                />
-                            </div>
-                            <div className="form-row">
+            {
+                showAddModal && (
+                    <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                            <h2>Add Story</h2>
+                            <form onSubmit={handleAddStory}>
                                 <div className="form-group">
-                                    <label>Source</label>
+                                    <label>Title *</label>
                                     <input
                                         type="text"
-                                        value={newStory.source}
-                                        onChange={(e) => setNewStory({ ...newStory, source: e.target.value })}
-                                        placeholder="TechCrunch, etc."
+                                        value={newStory.title}
+                                        onChange={(e) => setNewStory({ ...newStory, title: e.target.value })}
+                                        placeholder="Story headline..."
+                                        required
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Region</label>
-                                    <select
-                                        value={newStory.tag}
-                                        onChange={(e) => setNewStory({ ...newStory, tag: e.target.value })}
-                                    >
-                                        <option value="global">Global</option>
-                                        <option value="africa">Africa</option>
-                                    </select>
+                                    <label>URL *</label>
+                                    <input
+                                        type="url"
+                                        value={newStory.url}
+                                        onChange={(e) => setNewStory({ ...newStory, url: e.target.value })}
+                                        placeholder="https://..."
+                                        required
+                                    />
                                 </div>
-                            </div>
-                            <div className="form-actions">
-                                <button type="button" onClick={() => setShowAddModal(false)} className="btn-cancel">
-                                    Cancel
-                                </button>
-                                <button type="submit" className="btn-submit" disabled={submitting}>
-                                    {submitting ? 'Adding...' : 'Add Story'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {loading ? (
-                <div className="admin-loading">Loading...</div>
-            ) : stories.length === 0 ? (
-                <div className="admin-empty">No {filter} stories found</div>
-            ) : (
-                <div className="admin-cards">
-                    {stories.map((story) => (
-                        <div
-                            key={story.id}
-                            className={`admin-card ${successId === story.id ? 'card-success' : ''} ${updatingId === story.id ? 'card-updating' : ''}`}
-                        >
-                            <div className="admin-card-header">
-                                {story.source_type === 'manual' && (
-                                    <span className="admin-tag manual">Manual</span>
-                                )}
-                                <span className="admin-card-source">{story.source}</span>
-                                <span className="admin-card-date">{formatDate(story.created_at)}</span>
-                                {story.approved_by && (
-                                    <span className="admin-card-user" style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9CA3AF' }}>
-                                        by {story.approved_by.split('@')[0]}
-                                    </span>
-                                )}
-                            </div>
-
-                            <a href={story.url} target="_blank" rel="noopener noreferrer" className="admin-card-title">
-                                {story.title}
-                                <ExternalLink size={14} />
-                            </a>
-
-                            <div className="admin-card-footer">
-                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <span className={`status-badge ${story.status}`}>
-                                        {successId === story.id ? (
-                                            <span className="status-updated">
-                                                <CheckCircle size={12} /> Done!
-                                            </span>
-                                        ) : story.status}
-                                    </span>
-                                    <span className={`admin-tag ${story.tag}`}>{story.tag}</span>
-                                </div>
-
-                                <div className="admin-card-actions">
-                                    {story.status !== 'approved' && (
-                                        <button
-                                            onClick={() => updateStatus(story.id, 'approved')}
-                                            className="action-btn approve"
-                                            disabled={updatingId === story.id}
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Source</label>
+                                        <input
+                                            type="text"
+                                            value={newStory.source}
+                                            onChange={(e) => setNewStory({ ...newStory, source: e.target.value })}
+                                            placeholder="TechCrunch, etc."
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Region</label>
+                                        <select
+                                            value={newStory.tag}
+                                            onChange={(e) => setNewStory({ ...newStory, tag: e.target.value })}
                                         >
-                                            <Check size={18} />
-                                            <span>Approve</span>
-                                        </button>
-                                    )}
-                                    {story.status !== 'rejected' && (
-                                        <button
-                                            onClick={() => updateStatus(story.id, 'rejected')}
-                                            className="action-btn reject"
-                                            disabled={updatingId === story.id}
-                                        >
-                                            <X size={18} />
-                                            <span>Reject</span>
-                                        </button>
-                                    )}
+                                            <option value="global">Global</option>
+                                            <option value="africa">Africa</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
+                                <div className="form-actions">
+                                    <button type="button" onClick={() => setShowAddModal(false)} className="btn-cancel">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn-submit" disabled={submitting}>
+                                        {submitting ? 'Adding...' : 'Add Story'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    ))}
-                </div>
-            )}
-        </div>
+                    </div>
+                )
+            }
+
+            {
+                loading ? (
+                    <div className="admin-loading">Loading...</div>
+                ) : filteredStories.length === 0 ? (
+                    <div className="admin-empty">No stories match your search</div>
+                ) : (
+                    <div className="admin-cards">
+                        {filteredStories.map((story) => (
+                            <div
+                                key={story.id}
+                                className={`admin-card ${successId === story.id ? 'card-success' : ''} ${updatingId === story.id ? 'card-updating' : ''}`}
+                            >
+                                <div className="admin-card-header">
+                                    {story.source_type === 'manual' && (
+                                        <span className="admin-tag manual">Manual</span>
+                                    )}
+                                    <span className="admin-card-source">{highlightText(story.source, searchQuery)}</span>
+                                    <span className="admin-card-date">{formatDate(story.created_at)}</span>
+                                    {story.approved_by && (
+                                        <span className="admin-card-user" style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9CA3AF' }}>
+                                            by {story.approved_by.split('@')[0]}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <a href={story.url} target="_blank" rel="noopener noreferrer" className="admin-card-title">
+                                    {highlightText(story.title, searchQuery)}
+                                    <ExternalLink size={14} />
+                                </a>
+
+                                <div className="admin-card-footer">
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <span className={`status-badge ${story.status}`}>
+                                            {successId === story.id ? (
+                                                <span className="status-updated">
+                                                    <CheckCircle size={12} /> Done!
+                                                </span>
+                                            ) : story.status}
+                                        </span>
+                                        <span className={`admin-tag ${story.tag}`}>{highlightText(story.tag, searchQuery)}</span>
+                                    </div>
+
+                                    <div className="admin-card-actions">
+                                        {story.status !== 'approved' && (
+                                            <button
+                                                onClick={() => updateStatus(story.id, 'approved')}
+                                                className="action-btn approve"
+                                                disabled={updatingId === story.id}
+                                            >
+                                                <Check size={18} />
+                                                <span>Approve</span>
+                                            </button>
+                                        )}
+                                        {story.status !== 'rejected' && (
+                                            <button
+                                                onClick={() => updateStatus(story.id, 'rejected')}
+                                                className="action-btn reject"
+                                                disabled={updatingId === story.id}
+                                            >
+                                                <X size={18} />
+                                                <span>Reject</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
+        </div >
     );
 };
 

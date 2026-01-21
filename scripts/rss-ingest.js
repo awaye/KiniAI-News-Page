@@ -37,6 +37,13 @@ const isAIRelated = (title, content = '') => {
     return aiKeywords.some(keyword => text.includes(keyword));
 };
 
+// Trusted domains for auto-approval (Company Blogs only)
+const trustedDomains = [
+    'openai.com', 'anthropic.com', 'blog.google', 'deepmind.google'
+];
+
+const isTrusted = (url) => trustedDomains.some(d => url.includes(d));
+
 const ingestFeed = async (source) => {
     console.log(`\n📡 ${source.name}`);
 
@@ -61,13 +68,16 @@ const ingestFeed = async (source) => {
                 continue;
             }
 
+            // Auto-approve trusted sources
+            const status = isTrusted(source.url) ? 'approved' : 'pending';
+
             const { error } = await supabase.from('stories').insert({
                 title,
                 url,
                 source: source.name,
                 tag: source.tag,
                 source_type: 'rss',
-                status: 'pending',
+                status,
                 published_at: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString()
             });
 

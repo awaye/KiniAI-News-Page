@@ -5,7 +5,7 @@ import { Check, X, ExternalLink, RefreshCw, CheckCircle, Plus, Settings, LogOut,
 import { Link } from 'react-router-dom';
 
 const Admin = () => {
-    const { user, signOut } = useAuth();
+    const { user, signOut, signInWithGoogle } = useAuth();
     const [stories, setStories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('pending');
@@ -22,6 +22,7 @@ const Admin = () => {
         tag: 'global'
     });
     const [submitting, setSubmitting] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     useEffect(() => {
         if (isSupabaseConfigured()) {
@@ -164,12 +165,7 @@ const Admin = () => {
             <div className="admin-header">
                 <div>
                     <h1>Story Verification</h1>
-                    {user && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#6B7280', marginTop: '0.25rem' }}>
-                            <User size={14} />
-                            <span>{user.email}</span>
-                        </div>
-                    )}
+
                 </div>
                 <div className="admin-controls">
                     <button onClick={() => setShowAddModal(true)} className="admin-btn primary">
@@ -182,9 +178,7 @@ const Admin = () => {
                         Sources
                     </Link>
 
-                    <button onClick={signOut} className="admin-btn secondary" title="Sign Out">
-                        <LogOut size={18} />
-                    </button>
+
 
                     <select
                         value={regionFilter}
@@ -207,9 +201,41 @@ const Admin = () => {
                         <option value="all">All Status</option>
                     </select>
 
-                    <button onClick={fetchStories} className="admin-refresh" disabled={loading}>
+                    <button onClick={fetchStories} className="admin-refresh" disabled={loading} title="Refresh">
                         <RefreshCw size={18} className={loading ? 'spinning' : ''} />
                     </button>
+
+                    {user ? (
+                        <>
+                            <div style={{ position: 'relative' }}>
+                                <div
+                                    className="admin-avatar"
+                                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                    style={{
+                                        backgroundImage: `url(${user.user_metadata?.avatar_url || 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-yUa0OSqyYo2Vm7NW0IuXK_cmAHdBWRgzDxKBemtqTO4qZqkrxKuBhVh8uCD3bEFLqUzA9Am9pLaDz8qUnETTbRyIMIueawPDeamm3OmjLf_XSFxIcV-GoU1IdNC25vpr05HDRZoMuBPB2_lVADCUmwEGgyzVk2QIBtdH6cQDFGSW4Laj5r6tRLkZuzWd9oSN6hQ66ZoelR7W4cus7u9XdkfS6VSx1s2ih0KCA0f4zTyuBjY0IDrNwUTiHP2kXX21IP3AyGFaBh9U'})`,
+                                        cursor: 'pointer'
+                                    }}
+                                    title={user.email}
+                                />
+                                {showProfileMenu && (
+                                    <div className="profile-dropdown">
+                                        <div className="profile-header">
+                                            <span className="profile-email">{user.email}</span>
+                                        </div>
+                                        <button onClick={signOut} className="profile-logout-btn">
+                                            <LogOut size={14} />
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <button onClick={signInWithGoogle} className="admin-btn secondary" title="Sign In using Google">
+                            <User size={18} />
+                            <span>Sign In</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -285,16 +311,15 @@ const Admin = () => {
                             className={`admin-card ${successId === story.id ? 'card-success' : ''} ${updatingId === story.id ? 'card-updating' : ''}`}
                         >
                             <div className="admin-card-header">
-                                <span className={`admin-tag ${story.tag}`}>{story.tag}</span>
                                 {story.source_type === 'manual' && (
                                     <span className="admin-tag manual">Manual</span>
                                 )}
                                 <span className="admin-card-source">{story.source}</span>
                                 <span className="admin-card-date">{formatDate(story.created_at)}</span>
                                 {story.approved_by && (
-                                     <span className="admin-card-user" style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9CA3AF' }}>
+                                    <span className="admin-card-user" style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#9CA3AF' }}>
                                         by {story.approved_by.split('@')[0]}
-                                     </span>
+                                    </span>
                                 )}
                             </div>
 
@@ -304,13 +329,16 @@ const Admin = () => {
                             </a>
 
                             <div className="admin-card-footer">
-                                <span className={`status-badge ${story.status}`}>
-                                    {successId === story.id ? (
-                                        <span className="status-updated">
-                                            <CheckCircle size={12} /> Done!
-                                        </span>
-                                    ) : story.status}
-                                </span>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <span className={`status-badge ${story.status}`}>
+                                        {successId === story.id ? (
+                                            <span className="status-updated">
+                                                <CheckCircle size={12} /> Done!
+                                            </span>
+                                        ) : story.status}
+                                    </span>
+                                    <span className={`admin-tag ${story.tag}`}>{story.tag}</span>
+                                </div>
 
                                 <div className="admin-card-actions">
                                     {story.status !== 'approved' && (

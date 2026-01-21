@@ -856,3 +856,94 @@ a {
     border-radius: 9999px;
     font-size: 0.75rem;
 }
+/* Admin Avatar */
+.admin-avatar {
+  height: 2.225rem;
+  width: 2.225rem;
+  border-radius: 0.5rem;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  border: 1px solid #2d3748;
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background-color: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    width: 220px;
+    z-index: 50;
+    overflow: hidden;
+    animation: fadeIn 0.1s ease-out;
+}
+
+.profile-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #374151;
+    background-color: #111827;
+}
+
+.profile-email {
+    display: block;
+    font-size: 0.875rem;
+    color: #e5e7eb;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.profile-logout-btn:hover {
+    background-color: #374151;
+    color: #f87171;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Admin Tags (Region) */
+.admin-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.admin-tag.africa {
+    background-color: var(--kini-orange);
+    color: white;
+}
+
+.admin-tag.global {
+    background-color: var(--kini-green);
+    color: white;
+}
+
+.admin-tag.manual {
+    background-color: #374151;
+    color: #9ca3af;
+}

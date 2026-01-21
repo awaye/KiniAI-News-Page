@@ -29,7 +29,11 @@ export const AuthProvider = ({ children }) => {
     const value = {
         signUp: (data) => supabase?.auth.signUp(data),
         signIn: (data) => supabase?.auth.signInWithPassword(data),
-        signInWithGoogle: () => supabase?.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }),
+        // Update: Redirect specifically to /admin after Google Login
+        signInWithGoogle: () => supabase?.auth.signInWithOAuth({ 
+            provider: 'google', 
+            options: { redirectTo: `${window.location.origin}/admin` } 
+        }),
         signOut: () => supabase?.auth.signOut(),
         user,
         loading
